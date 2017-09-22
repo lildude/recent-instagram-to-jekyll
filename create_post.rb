@@ -38,7 +38,7 @@ end
 def repo(tags = [])
   return 'lildude/gonefora.run' if tags.include?('run')
   return 'lildude/lildude.co.uk' if tags.include?('tech')
-  return 'lildude/lildude.github.io' if ENV['RACK_ENV'] == 'development' || ENV['RACK_ENV'] == 'test'
+  return 'lildude/lildude.github.io' if ENV['RACK_ENV'] == 'development'
   'lildude/colinseymour.co.uk'
 end
 
