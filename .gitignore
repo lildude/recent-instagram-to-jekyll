@@ -1,3 +1,4 @@
 .env
 .rubocopy_todo.yml
 vendor/gems
+coverage
