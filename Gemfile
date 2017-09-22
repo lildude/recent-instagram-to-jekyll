@@ -9,6 +9,6 @@ gem 'octokit'
 group :test, :development do
   gem 'minitest'
   gem 'rubocop', require: false
-  gem 'simplecov'
+  gem 'simplecov', require: false
   gem 'webmock'
 end
