@@ -30,8 +30,7 @@ def client
 end
 
 def tokens?
-  return false unless ENV['INSTAGRAM_TOKEN']
-  return false unless ENV['GITHUB_TOKEN']
+  raise 'Missing auth env vars for tokens' unless ENV['INSTAGRAM_TOKEN'] && ENV['GITHUB_TOKEN']
   true
 end
 
@@ -81,7 +80,7 @@ end
 #### All the action starts ####
 if $PROGRAM_NAME == __FILE__
   begin
-    raise 'Missing auth env vars for tokens' unless tokens?
+    tokens?
 
     instagram_images.each do |image|
       short_code = File.basename(image['link'])
