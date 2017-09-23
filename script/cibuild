@@ -5,5 +5,8 @@ export RACK_ENV="test"
 
 bundle exec ruby ${REALPATH}/test/test.rb  "$@"
 
-echo "==> Rubocop…"
-rubocop --config .rubocop.yml
+if [ $? -eq 0 ]; then
+  echo
+  echo "==> Rubocop…"
+  rubocop --config ${REALPATH}/.rubocop.yml --parallel
+fi
