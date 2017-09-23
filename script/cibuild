@@ -8,5 +8,5 @@ bundle exec ruby ${REALPATH}/test/test.rb  "$@"
 if [ $? -eq 0 ] && [ $# -eq 0 ]; then
   echo
   echo "==> Rubocop…"
-  rubocop --config ${REALPATH}/.rubocop.yml --parallel
+  bundle exec rubocop --config ${REALPATH}/.rubocop.yml --parallel
 fi
