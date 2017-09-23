@@ -77,52 +77,70 @@ def render_template(locals = {})
   ERB.new(TEMPLATE).result(render_binding)
 end
 
+def nice_title(image, short_code)
+  title =
+    if image['caption']['text']
+      if image['caption']['text'].split.size > 8
+        "#{image['caption']['text'].split[0...8].join(' ')}…"
+      else
+        image['caption']['text']
+      end
+    else
+      "Instagram - #{short_code}"
+    end
+  title
+end
+
+def image_vars(image)
+  short_code = File.basename(image['link'])
+  pub_date = DateTime.strptime(image['created_time'].to_s, '%s')
+  vars = {
+    short_code: short_code,
+    pub_date:   pub_date,
+    dest_repo:  repo(image['tags']),
+    img_url:    image['images']['standard_resolution']['url'].gsub(%r{s640x640/sh0.08/e35/}, ''),
+    title:      nice_title(image, short_code),
+    img_filename: "img/#{short_code}.jpg",
+    post_filename: "_posts/#{pub_date.strftime('%F')}-#{short_code}.md"
+  }
+
+  vars.values
+end
+
 #### All the action starts ####
 if $PROGRAM_NAME == __FILE__
   begin
     tokens?
 
     instagram_images.each do |image|
-      short_code = File.basename(image['link'])
-      print "#{short_code} => ".yellow
+      short_code,
+      pub_date,
+      dest_repo,
+      img_url,
+      title,
+      img_filename,
+      post_filename = image_vars(image)
 
       # Exit early if the image was posted over an hour ago
-      pub_date = DateTime.strptime(image['created_time'].to_s, '%s')
       if pub_date < DateTime.now - (1 / 24.0)
         puts 'Nothing new'.blue
         exit
       end
 
-      dest_repo = repo(image['tags'])
+      print "#{short_code} => ".yellow
       print "#{dest_repo} => ".magenta
       # Skip if repo already has the photo - this is just a precaution
       if repo_has_post? dest_repo, short_code
         puts 'Skipped'.blue
         next
       end
-
+      
       # Download the image
-      img_filename = "img/#{short_code}.jpg"
-      img_url = image['images']['standard_resolution']['url'].gsub(%r{s640x640/sh0.08/e35/}, '')
       img_content = Base64.encode64(open(img_url).read)
 
-      # Determine the title
-      title =
-        if image['caption']['text']
-          if image['caption']['text'].split.size > 8
-            "#{image['caption']['text'].split[0...8].join(' ')}…"
-          else
-            image['caption']['text']
-          end
-        else
-          "Instagram - #{short_code}"
-        end
-
       # Create the post
-      post_filename = "_posts/#{pub_date.strftime('%F')}-#{short_code}.md"
       rendered = render_template(pub_date: pub_date, title: title, short_code: short_code, image: image)
       post_content = Base64.encode64(rendered)
-
       add_files_to_repo dest_repo, "#{post_filename}": post_content, "#{img_filename}": img_content
       puts 'DONE'.green
     end
