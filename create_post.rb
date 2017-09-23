@@ -107,6 +107,11 @@ def image_vars(image)
   vars.values
 end
 
+def new_image?(pub_date)
+  return false if pub_date < DateTime.now - (1 / 24.0)
+  true
+end
+
 #### All the action starts ####
 if $PROGRAM_NAME == __FILE__
   begin
@@ -122,19 +127,14 @@ if $PROGRAM_NAME == __FILE__
       post_filename = image_vars(image)
 
       # Exit early if the image was posted over an hour ago
-      if pub_date < DateTime.now - (1 / 24.0)
-        puts 'Nothing new'.blue
-        exit
-      end
-
-      print "#{short_code} => ".yellow
-      print "#{dest_repo} => ".magenta
+      puts 'Nothing new'.blue unless new_image?(pub_date)
+      print "#{short_code} => ".yellow + "#{dest_repo} => ".magenta
       # Skip if repo already has the photo - this is just a precaution
       if repo_has_post? dest_repo, short_code
         puts 'Skipped'.blue
         next
       end
-      
+
       # Download the image
       img_content = Base64.encode64(open(img_url).read)
 

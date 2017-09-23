@@ -155,4 +155,9 @@ class TestRelease < Minitest::Test
       '_posts/2017-08-31-BYeY7yClLbk.md'
     ], res
   end
+
+  def test_new_image
+    assert new_image?(DateTime.now - (0.5 / 24.0))
+    refute new_image?(DateTime.now - (1.5 / 24.0))
+  end
 end
