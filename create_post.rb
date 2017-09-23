@@ -135,7 +135,7 @@ if $PROGRAM_NAME == __FILE__
         puts 'Nothing new'.blue
         exit
       end
-      
+
       print "#{short_code} => ".yellow + "#{dest_repo} => ".magenta
       # Skip if repo already has the photo - this is just a precaution
       if repo_has_post? dest_repo, short_code
