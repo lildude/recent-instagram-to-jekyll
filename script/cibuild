@@ -1,0 +1,9 @@
+#!/bin/bash
+
+REALPATH=$(cd $(dirname "$0")/.. && pwd)
+export RACK_ENV="test"
+
+bundle exec ruby ${REALPATH}/test/test.rb  "$@"
+
+echo "==> Rubocop…"
+rubocop --config .rubocop.yml
