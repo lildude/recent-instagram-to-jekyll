@@ -9,20 +9,20 @@ require 'json'
 require 'octokit'
 require 'open-uri'
 
-TEMPLATE = ERB.new <<~TEMPLATE
+TEMPLATE = <<~TEMPLATE
   ---
   layout: post
-  date: <%= @pub_date.strftime("%F %T %z") %>
-  title: "<%= @title.gsub(/[".]/, '') %>"
+  date: <%= pub_date.strftime("%F %T %z") %>
+  title: "<%= title.gsub(/[".]/, '') %>"
   type: post
   tags:
   - instagram
-  instagram_url: <%= @image['link'] %>
+  instagram_url: <%= image['link'] %>
   ---
 
-  ![Instagram - <%= @short_code %>](/img/<%= @short_code %>.jpg){:class="instagram"}
+  ![Instagram - <%= short_code %>](/img/<%= short_code %>.jpg){:class="instagram"}
 
-  <%= @image['caption']['text'] %>
+  <%= image['caption']['text'] %>
 TEMPLATE
 
 def client
@@ -72,18 +72,23 @@ def add_files_to_repo(repo, files = {})
   client.update_ref(repo, 'heads/master', sha_new_commit)
 end
 
+def render_template(locals = {})
+  render_binding = binding
+  locals.each { |k, v| render_binding.local_variable_set(k, v) }
+  ERB.new(TEMPLATE).result(render_binding)
+end
+
 #### All the action starts ####
 if $PROGRAM_NAME == __FILE__
   begin
     raise 'Missing auth env vars for tokens' unless tokens?
 
     instagram_images.each do |image|
-      @image = image
-      @short_code = File.basename(image['link'])
-      print "#{@short_code} => ".yellow
+      short_code = File.basename(image['link'])
+      print "#{short_code} => ".yellow
 
       # Exit early if the image was posted over an hour ago
-      @pub_date = DateTime.strptime(image['created_time'].to_s, '%s')
+      pub_date = DateTime.strptime(image['created_time'].to_s, '%s')
       if @pub_date < DateTime.now - (1 / 24.0)
         puts 'Nothing new'.blue
         exit
@@ -98,12 +103,12 @@ if $PROGRAM_NAME == __FILE__
       end
 
       # Download the image
-      img_filename = "img/#{@short_code}.jpg"
+      img_filename = "img/#{short_code}.jpg"
       img_url = image['images']['standard_resolution']['url'].gsub(%r{s640x640/sh0.08/e35/}, '')
       img_content = Base64.encode64(open(img_url).read)
 
       # Determine the title
-      @title =
+      title =
         if image['caption']['text']
           if image['caption']['text'].split.size > 8
             "#{image['caption']['text'].split[0...8].join(' ')}…"
@@ -111,12 +116,13 @@ if $PROGRAM_NAME == __FILE__
             image['caption']['text']
           end
         else
-          "Instagram - #{@short_code}"
+          "Instagram - #{short_code}"
         end
 
       # Create the post
-      post_filename = "_posts/#{@pub_date.strftime('%F')}-#{@short_code}.md"
-      post_content = Base64.encode64(TEMPLATE.result)
+      post_filename = "_posts/#{pub_date.strftime('%F')}-#{short_code}.md"
+      rendered = render_template(pub_date: pub_date, title: title, short_code: short_code, image: image)
+      post_content = Base64.encode64(rendered)
 
       add_files_to_repo dest_repo, "#{post_filename}": post_content, "#{img_filename}": img_content
       puts 'DONE'.green
