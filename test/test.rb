@@ -160,4 +160,12 @@ class TestRelease < Minitest::Test
     assert new_image?(DateTime.now - (0.5 / 24.0))
     refute new_image?(DateTime.now - (1.5 / 24.0))
   end
+
+  def test_encode_image
+    stub_request(:get, 'https://scontent.cdninstagram.com/pretend_url.jpg')
+      .to_return(status: 200, body: File.open("#{File.dirname(__FILE__)}/fixtures/test.jpg"))
+
+    assert_equal File.open("#{File.dirname(__FILE__)}/fixtures/test.jpg.base64").read,
+                 encode_image('https://scontent.cdninstagram.com/pretend_url.jpg')
+  end
 end

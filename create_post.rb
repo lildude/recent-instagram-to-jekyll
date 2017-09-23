@@ -112,6 +112,10 @@ def new_image?(pub_date)
   true
 end
 
+def encode_image(url)
+  Base64.encode64(open(url).read)
+end
+
 #### All the action starts ####
 if $PROGRAM_NAME == __FILE__
   begin
@@ -135,13 +139,13 @@ if $PROGRAM_NAME == __FILE__
         next
       end
 
-      # Download the image
-      img_content = Base64.encode64(open(img_url).read)
-
       # Create the post
       rendered = render_template(pub_date: pub_date, title: title, short_code: short_code, image: image)
       post_content = Base64.encode64(rendered)
-      add_files_to_repo dest_repo, "#{post_filename}": post_content, "#{img_filename}": img_content
+
+      add_files_to_repo dest_repo,
+                        "#{post_filename}": post_content,
+                        "#{img_filename}": encode_image(img_url)
       puts 'DONE'.green
     end
   rescue RuntimeError => e
