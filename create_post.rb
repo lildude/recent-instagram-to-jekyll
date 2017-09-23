@@ -88,7 +88,7 @@ if $PROGRAM_NAME == __FILE__
 
       # Exit early if the image was posted over an hour ago
       pub_date = DateTime.strptime(image['created_time'].to_s, '%s')
-      if @pub_date < DateTime.now - (1 / 24.0)
+      if pub_date < DateTime.now - (1 / 24.0)
         puts 'Nothing new'.blue
         exit
       end
@@ -96,7 +96,7 @@ if $PROGRAM_NAME == __FILE__
       dest_repo = repo(image['tags'])
       print "#{dest_repo} => ".magenta
       # Skip if repo already has the photo - this is just a precaution
-      if repo_has_post? dest_repo, @short_code
+      if repo_has_post? dest_repo, short_code
         puts 'Skipped'.blue
         next
       end
