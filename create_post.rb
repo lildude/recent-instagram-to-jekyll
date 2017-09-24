@@ -17,12 +17,19 @@ TEMPLATE = <<~TEMPLATE
   type: post
   tags:
   - instagram
+  <% unless image['tags'].empty? -%>
+  <% image['tags'].each do |tag| -%>
+  <% unless %w[run tech].include?(tag) -%>
+  - <%= tag %>
+  <% end -%>
+  <% end -%>
+  <% end -%>
   instagram_url: <%= image['link'] %>
   ---
 
   ![Instagram - <%= short_code %>](/img/<%= short_code %>.jpg){:class="instagram"}
 
-  <%= image['caption']['text'] %>
+  <%= image['caption']['text'].gsub(/\S*#(?:\[[^\]]+\]|\S+).+/, '') %>
 TEMPLATE
 
 def client
@@ -74,7 +81,7 @@ end
 def render_template(locals = {})
   render_binding = binding
   locals.each { |k, v| render_binding.local_variable_set(k, v) }
-  ERB.new(TEMPLATE).result(render_binding)
+  ERB.new(TEMPLATE, 0, '-').result(render_binding)
 end
 
 def nice_title(image, short_code)
