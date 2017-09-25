@@ -3,7 +3,7 @@
 REALPATH=$(cd $(dirname "$0")/.. && pwd)
 export RACK_ENV="test"
 
-bundle exec ruby ${REALPATH}/test/test.rb  "$@"
+bundle exec ruby -W2 ${REALPATH}/test/test.rb  "$@"
 
 if [ $? -eq 0 ] && [ $# -eq 0 ]; then
   echo
