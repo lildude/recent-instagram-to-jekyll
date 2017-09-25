@@ -107,7 +107,7 @@ class TestRelease < Minitest::Test
       title: 'This is the title',
       image: {
         'caption' => {
-          'text' => 'Image text is here #anotag'
+          'text' => 'Image text is here #anotag #tag1 #tag2'
         },
         'link' => 'https://www.instagram.com/p/BYeY7yClLbk/',
         'tags' => %w[tag1 tag2 run]
@@ -123,6 +123,9 @@ class TestRelease < Minitest::Test
     assert_match '![Instagram - FOOOBAAR](/img/FOOOBAAR.jpg){:class="instagram"}', rendered
     assert_match 'Image text is here', rendered
     refute_match 'Image text is here #anotag', rendered
+    refute_match 'notag', rendered
+    refute_match '#tag1 #tag2', rendered
+    refute_match 'tag1 tag2', rendered
   end
 
   def test_nice_title
