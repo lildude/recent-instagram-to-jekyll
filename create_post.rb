@@ -123,6 +123,7 @@ def encode_image(url)
   Base64.encode64(open(url).read)
 end
 
+# :nocov:
 #### All the action starts ####
 if $PROGRAM_NAME == __FILE__
   begin
@@ -164,3 +165,4 @@ if $PROGRAM_NAME == __FILE__
     exit 1
   end
 end
+# :nocov:
