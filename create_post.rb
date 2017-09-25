@@ -29,7 +29,7 @@ TEMPLATE = <<~TEMPLATE
 
   ![Instagram - <%= short_code %>](/img/<%= short_code %>.jpg){:class="instagram"}
 
-  <%= image['caption']['text'].gsub(/\S*#(?:\[[^\]]+\]|\S+).+/, '') %>
+  <%= image['caption']['text'].gsub(/\\B#\\w+/, '') %>
 TEMPLATE
 
 def client
