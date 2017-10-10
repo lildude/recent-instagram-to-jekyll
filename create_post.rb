@@ -27,7 +27,7 @@ TEMPLATE = <<~TEMPLATE
   instagram_url: <%= image['link'] %>
   ---
 
-  ![Instagram - <%= short_code %>](/img/<%= short_code %>.jpg){:class="instagram"}
+  ![Instagram - <%= short_code %>](/img/<%= short_code %>.jpg){: .instagram}
 
   <%= image['caption']['text'].gsub(/\\B#\\w+/, '') %>
 TEMPLATE
