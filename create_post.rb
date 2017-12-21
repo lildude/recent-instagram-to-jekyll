@@ -27,7 +27,7 @@ TEMPLATE = <<~TEMPLATE
   instagram_url: <%= image['link'] %>
   ---
 
-  ![Instagram - <%= short_code %>](/img/<%= short_code %>.jpg){: .instagram}
+  ![Instagram - <%= short_code %>](https://<%= dest_repo.split('/').last %>/img/<%= short_code %>.jpg){: .instagram}
 
   <%= image['caption']['text'].gsub(/\\B#\\w+/, '') %>
 TEMPLATE
@@ -152,7 +152,13 @@ if $PROGRAM_NAME == __FILE__
       end
 
       # Create the post
-      rendered = render_template(pub_date: pub_date, title: title, short_code: short_code, image: image)
+      rendered = render_template(
+        pub_date: pub_date,
+        title: title,
+        short_code: short_code,
+        image: image,
+        dest_repo: dest_repo
+      )
       post_content = Base64.encode64(rendered)
 
       add_files_to_repo dest_repo,

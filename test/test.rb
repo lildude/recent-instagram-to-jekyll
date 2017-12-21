@@ -114,7 +114,8 @@ class TestRelease < Minitest::Test
         'link' => 'https://www.instagram.com/p/BYeY7yClLbk/',
         'tags' => %w[tag1 tag2 run]
       },
-      short_code: 'FOOOBAAR'
+      short_code: 'FOOOBAAR',
+      dest_repo: 'lildude/lildude.github.io'
     }
 
     rendered = render_template(locals)
@@ -122,7 +123,7 @@ class TestRelease < Minitest::Test
     assert_match 'title: "This is the title"', rendered
     assert_match '- instagram', rendered
     assert_match 'instagram_url: https://www.instagram.com/p/BYeY7yClLbk/', rendered
-    assert_match '![Instagram - FOOOBAAR](/img/FOOOBAAR.jpg){:class="instagram"}', rendered
+    assert_match '![Instagram - FOOOBAAR](https://lildude.github.io/img/FOOOBAAR.jpg){: .instagram}', rendered
     assert_match 'Image text is here', rendered
     refute_match 'Image text is here #anotag', rendered
     refute_match 'notag', rendered
