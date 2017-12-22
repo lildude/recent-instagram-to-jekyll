@@ -11,7 +11,7 @@ require 'open-uri'
 
 TEMPLATE = <<~TEMPLATE
   ---
-  layout: post
+  layout: photo
   date: <%= pub_date.strftime("%F %T %z") %>
   title: "<%= title.gsub(/[".]/, '') %>"
   type: post
