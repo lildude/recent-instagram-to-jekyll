@@ -105,7 +105,7 @@ def image_vars(image)
     short_code: short_code,
     pub_date:   pub_date,
     dest_repo:  repo(image['tags']),
-    img_url:    image['images']['standard_resolution']['url'].gsub(%r{s640x640/sh0.08/e35/}, ''),
+    img_url:    image['images']['standard_resolution']['url'].gsub(%r{vp.*/.{32}/.{8}/}, '').gsub(%r{s640x640/sh0.08/e35/}, ''),
     title:      nice_title(image, short_code),
     img_filename: "img/#{short_code}.jpg",
     post_filename: "_posts/#{pub_date.strftime('%F')}-#{short_code}.md"
