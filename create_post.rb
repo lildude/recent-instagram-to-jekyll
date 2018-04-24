@@ -98,6 +98,15 @@ def nice_title(image, short_code)
   title
 end
 
+# The full size URL has been known to change without warning. See https://stackoverflow.com/questions/31302811/1080x1080-photos-via-instagram-api
+# This grabs the URL from the new graphql results using a URL hack
+# Takes the shortcode URL as an argument
+def get_full_img_url(link)
+  uri = URI("#{link}?__a=1")
+  res = JSON.parse(uri.open.read)
+  res["graphql"]["shortcode_media"]["display_url"]
+end
+
 def image_vars(image)
   short_code = File.basename(image['link'])
   pub_date = DateTime.strptime(image['created_time'].to_s, '%s')
@@ -105,7 +114,7 @@ def image_vars(image)
     short_code: short_code,
     pub_date:   pub_date,
     dest_repo:  repo(image['tags']),
-    img_url:    image['images']['standard_resolution']['url'].gsub(%r{vp.*/.{32}/.{8}/}, '').gsub(%r{s640x640/sh0.08/e35/}, ''),
+    img_url:    get_full_img_url(image['link']),
     title:      nice_title(image, short_code),
     img_filename: "img/#{short_code}.jpg",
     post_filename: "_posts/#{pub_date.strftime('%F')}-#{short_code}.md"
