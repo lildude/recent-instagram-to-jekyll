@@ -124,7 +124,7 @@ def image_vars(image)
 end
 
 def new_image?(pub_date)
-  return false if pub_date < DateTime.now - (1 / 24.0)
+  return false if pub_date < DateTime.now - (2 / 24.0)
   true
 end
 
