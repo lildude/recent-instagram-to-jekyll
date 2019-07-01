@@ -123,6 +123,7 @@ def image_vars(image)
   vars.values
 end
 
+# New image in the last hour?
 def new_image?(pub_date)
   return false if pub_date < DateTime.now - (2 / 24.0)
   true
