@@ -3,7 +3,7 @@ name: Continuous Integration
 on: [push, pull_request]
 
 jobs:
-  testing_job:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
