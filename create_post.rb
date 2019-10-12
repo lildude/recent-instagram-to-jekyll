@@ -135,7 +135,7 @@ end
 
 def encode_image(url)
   uri = URI.parse(url)
-  Base64.encode64(uri.read)
+  Base64.encode64(uri.open.read)
 end
 
 # :nocov:

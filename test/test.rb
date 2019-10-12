@@ -141,6 +141,25 @@ class TestRelease < Minitest::Test
   end
 
   def test_image_vars
+    # Only stub the info we need
+    body = {
+      "graphql": {
+        "shortcode_media": {
+          "display_url": 'https://scontent.cdninstagram.com/pretend_url.jpg'
+        }
+      }
+    }.to_json
+
+    stub_request(:get, 'https://www.instagram.com/p/BYeY7yClLbk/?__a=1')
+      .with(
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'User-Agent' => 'Ruby'
+        }
+      )
+      .to_return(status: 200, body: body, headers: {})
+
     image = { 'link' => 'https://www.instagram.com/p/BYeY7yClLbk/',
               'caption' => { 'text' => 'Image text is here' },
               'created_time' => '1504218288',
@@ -167,15 +186,15 @@ class TestRelease < Minitest::Test
 
   def test_new_image
     assert new_image?(DateTime.now - (0.5 / 24.0))
-    refute new_image?(DateTime.now - (1.5 / 24.0))
+    refute new_image?(DateTime.now - (2.5 / 24.0))
   end
 
   def test_encode_image
     stub_request(:get, 'https://scontent.cdninstagram.com/pretend_url.jpg')
       .to_return(status: 200, body: File.open("#{File.dirname(__FILE__)}/fixtures/test.jpg"))
 
-    assert_equal File.open("#{File.dirname(__FILE__)}/fixtures/test.jpg.base64").read,
-                 encode_image('https://scontent.cdninstagram.com/pretend_url.jpg')
+    expected = File.open("#{File.dirname(__FILE__)}/fixtures/test.jpg.base64").read
+    assert_equal expected, encode_image('https://scontent.cdninstagram.com/pretend_url.jpg')
   end
 end
 # rubocop:enable Metrics/ClassLength
