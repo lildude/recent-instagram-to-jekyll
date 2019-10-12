@@ -1,11 +1,11 @@
-name: Hourly
+name: Scheduled
 
 on:
   schedule:
-    - cron: 30 * * * *
+    - cron: 32 * * * *
 
 jobs:
-  run:
+  hourly:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -17,5 +17,5 @@ jobs:
       run: |
         gem install bundler --no-document
         bundle install --jobs 4 --local --deployment
-    - name: Checking for new images
+    - name: Do it
       run: bundle exec ruby ./create_post.rb
