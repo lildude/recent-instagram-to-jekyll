@@ -11,7 +11,9 @@ jobs:
       uses: actions/setup-ruby@v1
       with:
         ruby-version: 2.6.3
-    - name: Bootstrap
-      run: script/bootstrap
+    - name: Install Dependencies
+      run: |
+        gem install bundler
+        bundle install --jobs 4 --local
     - name: Run tests
       run: script/cibuild
