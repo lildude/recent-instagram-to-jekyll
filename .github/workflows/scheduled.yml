@@ -2,7 +2,7 @@ name: Scheduled
 
 on:
   schedule:
-    - cron: 32 * * * *
+    - cron: 35 * * * *
 
 jobs:
   hourly:
