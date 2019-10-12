@@ -1,0 +1,17 @@
+name: Continuous Integration
+
+on: [push, pull_request]
+
+jobs:
+  testing_job:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.6.3
+    - name: Bootstrap
+      run: script/bootstrap
+    - name: Run tests
+      run: script/cibuild
