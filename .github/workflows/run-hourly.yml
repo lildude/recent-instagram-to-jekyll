@@ -1,4 +1,4 @@
-name: Hourly
+name: Run Hourly
 
 on:
   schedule:
