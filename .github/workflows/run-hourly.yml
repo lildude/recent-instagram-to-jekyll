@@ -1,8 +1,8 @@
-name: Run Hourly
+name: Hourly
 
 on:
   schedule:
-    - cron:  '20 * * * *'
+    - cron: 30 * * * *
 
 jobs:
   run:
