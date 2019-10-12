@@ -2,7 +2,7 @@ name: Scheduled
 
 on:
   schedule:
-    - cron: 35 * * * *
+    - cron: 41 * * * *
 
 jobs:
   hourly:
@@ -18,4 +18,8 @@ jobs:
         gem install bundler --no-document
         bundle install --jobs 4 --local --deployment
     - name: Do it
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+        RACK_ENV: 'production'
       run: bundle exec ruby ./create_post.rb
