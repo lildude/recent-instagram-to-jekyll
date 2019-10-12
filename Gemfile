@@ -7,7 +7,7 @@ gem 'colorize'
 gem 'octokit'
 
 group :test, :development do
-  gem 'coveralls', require: false
+  gem 'coveralls', '~> 0.8.0', require: false
   gem 'minitest'
   gem 'rubocop', require: false
   gem 'simplecov', require: false
