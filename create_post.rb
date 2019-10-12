@@ -38,6 +38,7 @@ end
 
 def tokens?
   raise 'Missing auth env vars for tokens' unless ENV['INSTAGRAM_TOKEN'] && ENV['GITHUB_TOKEN']
+
   true
 end
 
@@ -45,12 +46,14 @@ def repo(tags = [])
   return 'lildude/gonefora.run' if tags.include?('run')
   return 'lildude/lildude.co.uk' if tags.include?('tech')
   return 'lildude/lildude.github.io' if ENV['RACK_ENV'] == 'development'
+
   'lildude/colinseymour.co.uk'
 end
 
 def repo_has_post?(repo, short_code)
   res = client.search_code("filename:#{short_code} repo:#{repo} path:_posts")
   return false if res.total_count.zero?
+
   true
 end
 
@@ -81,7 +84,7 @@ end
 def render_template(locals = {})
   render_binding = binding
   locals.each { |k, v| render_binding.local_variable_set(k, v) }
-  ERB.new(TEMPLATE, 0, '-').result(render_binding)
+  ERB.new(TEMPLATE, trim_mode: '-').result(render_binding)
 end
 
 def nice_title(image, short_code)
@@ -104,7 +107,7 @@ end
 def get_full_img_url(link)
   uri = URI("#{link}?__a=1")
   res = JSON.parse(uri.open.read)
-  res["graphql"]["shortcode_media"]["display_url"]
+  res['graphql']['shortcode_media']['display_url']
 end
 
 def image_vars(image)
@@ -112,10 +115,10 @@ def image_vars(image)
   pub_date = DateTime.strptime(image['created_time'].to_s, '%s')
   vars = {
     short_code: short_code,
-    pub_date:   pub_date,
-    dest_repo:  repo(image['tags']),
-    img_url:    get_full_img_url(image['link']),
-    title:      nice_title(image, short_code),
+    pub_date: pub_date,
+    dest_repo: repo(image['tags']),
+    img_url: get_full_img_url(image['link']),
+    title: nice_title(image, short_code),
     img_filename: "img/#{short_code}.jpg",
     post_filename: "_posts/#{pub_date.strftime('%F')}-#{short_code}.md"
   }
@@ -123,13 +126,16 @@ def image_vars(image)
   vars.values
 end
 
+# New image in the last hour?
 def new_image?(pub_date)
   return false if pub_date < DateTime.now - (2 / 24.0)
+
   true
 end
 
 def encode_image(url)
-  Base64.encode64(open(url).read)
+  uri = URI.parse(url)
+  Base64.encode64(uri.open.read)
 end
 
 # :nocov:
@@ -176,7 +182,7 @@ if $PROGRAM_NAME == __FILE__
       puts 'DONE'.green
     end
   rescue RuntimeError => e
-    $stderr.puts "Error: #{e}".red
+    warn "Error: #{e}".red
     exit 1
   end
 end
