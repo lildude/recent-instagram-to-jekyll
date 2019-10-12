@@ -1,4 +1,4 @@
-name: Run Hourly
+name: Hourly
 
 on:
   schedule:
@@ -7,15 +7,15 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@master
-      - name: Set up Ruby
-        uses: actions/setup-ruby@v1
-        with:
-          ruby-version: 2.6.3
-      - name: Install Dependencies
-        run: |
-          gem install bundler --no-document
-          bundle install --jobs 4 --local --deployment
-      - name: Checking for new images
-        run: bundle exec ruby ./create_post.rb
+    steps:
+    - uses: actions/checkout@master
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.6.3
+    - name: Install Dependencies
+      run: |
+        gem install bundler --no-document
+        bundle install --jobs 4 --local --deployment
+    - name: Checking for new images
+      run: bundle exec ruby ./create_post.rb
