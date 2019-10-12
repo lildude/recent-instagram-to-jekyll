@@ -19,6 +19,7 @@ require_relative '../create_post'
 ENV['RACK_ENV'] ||= 'test'
 
 # rubocop:disable Metrics/ClassLength
+# rubocop:disable Metrics/MethodLength
 class TestRelease < Minitest::Test
   def test_tokens
     exception = assert_raises(RuntimeError) { tokens? }
@@ -55,7 +56,6 @@ class TestRelease < Minitest::Test
     refute repo_has_post?('lildude/lildude.github.io', 'FOOOBAAR')
   end
 
-  # rubocop:disable Metrics/MethodLength
   def test_instagram_images
     stub_request(:get, /api.instagram.com/)
       .to_return(
@@ -178,3 +178,5 @@ class TestRelease < Minitest::Test
                  encode_image('https://scontent.cdninstagram.com/pretend_url.jpg')
   end
 end
+# rubocop:enable Metrics/ClassLength
+# rubocop:enable Metrics/MethodLength
