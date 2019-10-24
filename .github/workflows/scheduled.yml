@@ -19,7 +19,7 @@ jobs:
         bundle install --jobs 4 --local --deployment
     - name: Do it
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_REPO_TOKEN }}
         INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
         RACK_ENV: 'production'
       run: bundle exec ruby ./create_post.rb
