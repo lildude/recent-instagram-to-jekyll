@@ -61,6 +61,9 @@ def instagram_images
   uri = URI("https://api.instagram.com/v1/users/self/media/recent/?access_token=#{ENV['INSTAGRAM_TOKEN']}")
   res = JSON.parse(uri.open.read)
   res['data']
+rescue OpenURI::HTTPError
+  puts 'Instagram not reachable right now'.yellow
+  exit
 end
 
 def add_files_to_repo(repo, files = {})
