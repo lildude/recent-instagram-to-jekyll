@@ -10,7 +10,7 @@ jobs:
     - name: Cache Ruby Gems
       uses: actions/cache@preview
       with:
-        path: vendor/bundle
+        path: vendor/gems
         key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
         restore-keys: |
           ${{ runner.os }}-gem-
