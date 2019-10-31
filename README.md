@@ -7,5 +7,3 @@ A rather crude script to update my blogs with the latest photos from Instagram, 
 ~~I run this hourly using the [Heroku Scheduler](https://devcenter.heroku.com/articles/scheduler) which uses [One-off Dynos](https://devcenter.heroku.com/articles/one-off-dynos) for the invocation.~~
 
 Update: I run this hourly using GitHub Actions.
-
-Test
