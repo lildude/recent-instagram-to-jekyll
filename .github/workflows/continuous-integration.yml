@@ -10,7 +10,7 @@ jobs:
     - name: Cache Ruby Gems
       uses: actions/cache@preview
       with:
-        path: vendor/gems
+        path: vendor/bundle
         key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
         restore-keys: |
           ${{ runner.os }}-gem-
@@ -21,6 +21,6 @@ jobs:
     - name: Install Dependencies
       run: |
         gem install bundler --no-document
-        bundle install --jobs 4 --local
+        bundle install --jobs 4 --local --deployment
     - name: Run tests
       run: script/cibuild
