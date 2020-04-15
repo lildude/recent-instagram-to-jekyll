@@ -27,7 +27,7 @@ TEMPLATE = <<~TEMPLATE
   instagram_url: <%= image['link'] %>
   ---
 
-  ![Instagram - <%= short_code %>](https://<%= dest_repo.split('/').last %>/img/<%= short_code %>.jpg){: .instagram}
+  ![Instagram - <%= short_code %>](https://<%= dest_repo.split('/').last %>/img/<%= short_code %>.jpg){:loading="lazy"}
 
   <%= image['caption']['text'].gsub(/\\B#\\w+/, '') %>
 TEMPLATE
