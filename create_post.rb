@@ -108,6 +108,7 @@ end
 # This grabs the URL from the new graphql results using a URL hack
 # Takes the shortcode URL as an argument
 def get_full_img_url(link)
+  puts link
   uri = URI("#{link}?__a=1")
   res = JSON.parse(uri.open.read)
   res['graphql']['shortcode_media']['display_url']
