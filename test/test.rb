@@ -123,7 +123,7 @@ class TestRelease < Minitest::Test
     assert_match 'title: "This is the title"', rendered
     assert_match '- instagram', rendered
     assert_match 'instagram_url: https://www.instagram.com/p/BYeY7yClLbk/', rendered
-    assert_match '![Instagram - FOOOBAAR](https://lildude.github.io/img/FOOOBAAR.jpg){: .instagram}', rendered
+    assert_match '![Instagram - FOOOBAAR](https://lildude.github.io/img/FOOOBAAR.jpg){:loading="lazy"}{: .u-photo}', rendered
     assert_match 'Image text is here', rendered
     refute_match 'Image text is here #anotag', rendered
     refute_match 'notag', rendered
@@ -158,7 +158,7 @@ class TestRelease < Minitest::Test
           'User-Agent' => 'Ruby'
         }
       )
-      .to_return(status: 200, body: body, headers: {})
+      .to_return(status: 200, body: body, headers: { 'Content-Type' => 'application/json' })
 
     image = { 'link' => 'https://www.instagram.com/p/BYeY7yClLbk/',
               'caption' => { 'text' => 'Image text is here' },

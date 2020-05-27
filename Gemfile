@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 ruby '~> 2.6.3'
 
 gem 'colorize'
+gem 'httparty'
 gem 'octokit'
 
 group :test, :development do

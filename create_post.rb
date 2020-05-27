@@ -5,9 +5,10 @@
 require 'colorize'
 require 'date'
 require 'erb'
+require 'httparty'
 require 'json'
 require 'octokit'
-require 'open-uri'
+require 'tempfile'
 
 TEMPLATE = <<~TEMPLATE
   ---
@@ -27,7 +28,7 @@ TEMPLATE = <<~TEMPLATE
   instagram_url: <%= image['link'] %>
   ---
 
-  ![Instagram - <%= short_code %>](https://<%= dest_repo.split('/').last %>/img/<%= short_code %>.jpg){:loading="lazy"}
+  ![Instagram - <%= short_code %>](https://<%= dest_repo.split('/').last %>/img/<%= short_code %>.jpg){:loading="lazy"}{: .u-photo}
 
   <%= image['caption']['text'].gsub(/\\B#\\w+/, '') %>
 TEMPLATE
@@ -58,10 +59,9 @@ def repo_has_post?(repo, short_code)
 end
 
 def instagram_images
-  uri = URI("https://api.instagram.com/v1/users/self/media/recent/?access_token=#{ENV['INSTAGRAM_TOKEN']}")
-  res = JSON.parse(uri.open.read)
-  res['data']
-rescue OpenURI::HTTPError
+  res = HTTParty.get("https://api.instagram.com/v1/users/self/media/recent/?access_token=#{ENV['INSTAGRAM_TOKEN']}")
+  res.parsed_response['data']
+rescue HTTParty::ResponseError
   puts 'Instagram not reachable right now'.yellow
   exit
 end
@@ -108,10 +108,8 @@ end
 # This grabs the URL from the new graphql results using a URL hack
 # Takes the shortcode URL as an argument
 def get_full_img_url(link)
-  puts link
-  uri = URI("#{link}?__a=1")
-  res = JSON.parse(uri.open.read)
-  res['graphql']['shortcode_media']['display_url']
+  res = HTTParty.get("#{link}?__a=1")
+  res.parsed_response['graphql']['shortcode_media']['display_url']
 end
 
 def image_vars(image)
@@ -138,8 +136,14 @@ def new_image?(pub_date)
 end
 
 def encode_image(url)
-  uri = URI.parse(url)
-  Base64.encode64(uri.open.read)
+  tmpfile = Tempfile.new('photo')
+  File.open(tmpfile, 'wb') do |f|
+    resp = HTTParty.get(url, stream_body: true, follow_redirects: true)
+    raise unless resp.success?
+
+    f.write resp.body
+  end
+  Base64.encode64(tmpfile.read)
 end
 
 # :nocov:
