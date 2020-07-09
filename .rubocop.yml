@@ -10,9 +10,8 @@ Metrics/AbcSize:
 Metrics/BlockLength:
   Max: 35
 
-Metrics/LineLength:
-  AllowURI: true
-  Max: 130
-
 Metrics/MethodLength:
   Max: 15
+
+Layout/LineLength:
+  Enabled: false

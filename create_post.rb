@@ -61,9 +61,9 @@ end
 # Instagram long-lived tokens are only valid for 60 days but are easily renewed.
 # The hardest part is remembering to update the settings.
 def renew_insta_token
- res = HTTParty.get("https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=#{ENV['INSTAGRAM_TOKEN']}")
- puts "Problem refreshing token: #{res.parsed_response['error']['message']}".red if res.parsed_response['error']
- res.parsed_response['access_token']
+  res = HTTParty.get("https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=#{ENV['INSTAGRAM_TOKEN']}")
+  puts "Problem refreshing token: #{res.parsed_response['error']['message']}".red if res.parsed_response['error']
+  res.parsed_response['access_token']
 end
 
 def instagram_images

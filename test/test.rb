@@ -65,7 +65,7 @@ class TestRelease < Minitest::Test
             caption: 'Image text is here',
             media_url: 'https://scontent.cdninstagram.com/pretend_url.jpg',
             timestamp: '2020-03-30T13:02:48+0000',
-            permalink: 'https://www.instagram.com/p/B-W9b35JzZC/',
+            permalink: 'https://www.instagram.com/p/B-W9b35JzZC/'
           }]
         )
       )
@@ -110,7 +110,7 @@ class TestRelease < Minitest::Test
       title: 'This is the title',
       image: {
         'caption' => 'Image text is here #anotag #tag1 #tag2',
-        'permalink' => 'https://www.instagram.com/p/BYeY7yClLbk/',
+        'permalink' => 'https://www.instagram.com/p/BYeY7yClLbk/'
       },
       short_code: 'FOOOBAAR',
       dest_repo: 'lildude/lildude.github.io'
@@ -143,14 +143,13 @@ class TestRelease < Minitest::Test
               'caption' => 'Image text is here #tag1 #tag2',
               'timestamp' => '2017-08-31T22:24:48+00:00',
               'tags' => %w[tag1 tag2],
-              'media_url' => 'https://scontent.cdninstagram.com/pretend_url.jpg'
-              }
+              'media_url' => 'https://scontent.cdninstagram.com/pretend_url.jpg' }
 
     res = image_vars(image)
     assert_kind_of Array, res
     # Order is important
     assert_equal [
-      ["tag1", "tag2"],
+      %w[tag1 tag2],
       'BYeY7yClLbk',
       DateTime.parse('2017-08-31T22:24:48+00:00'),
       'lildude/colinseymour.co.uk',
