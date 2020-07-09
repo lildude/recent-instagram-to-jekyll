@@ -18,19 +18,19 @@ TEMPLATE = <<~TEMPLATE
   type: post
   tags:
   - instagram
-  <% unless image['tags'].empty? -%>
-  <% image['tags'].each do |tag| -%>
+  <% unless tags.empty? -%>
+  <% tags.each do |tag| -%>
   <% unless %w[run tech].include?(tag) -%>
   - <%= tag %>
   <% end -%>
   <% end -%>
   <% end -%>
-  instagram_url: <%= image['link'] %>
+  instagram_url: <%= image['permalink'] %>
   ---
 
   ![Instagram - <%= short_code %>](https://<%= dest_repo.split('/').last %>/img/<%= short_code %>.jpg){:loading="lazy"}{: .u-photo}
 
-  <%= image['caption']['text'].gsub(/\\B#\\w+/, '') %>
+  <%= image['caption'].gsub(/\\B#\\w+/, '') %>
 TEMPLATE
 
 def client
@@ -58,8 +58,20 @@ def repo_has_post?(repo, short_code)
   true
 end
 
+# Instagram long-lived tokens are only valid for 60 days but are easily renewed.
+# The hardest part is remembering to update the settings.
+def renew_insta_token
+ res = HTTParty.get("https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=#{ENV['INSTAGRAM_TOKEN']}")
+ puts "Problem refreshing token: #{res.parsed_response['error']['message']}".red if res.parsed_response['error']
+ res.parsed_response['access_token']
+end
+
 def instagram_images
-  res = HTTParty.get("https://api.instagram.com/v1/users/self/media/recent/?access_token=#{ENV['INSTAGRAM_TOKEN']}")
+  res = HTTParty.get("https://graph.instagram.com/me/media?fields=caption,media_type,media_url,timestamp,permalink&access_token=#{ENV['INSTAGRAM_TOKEN']}")
+  if res.parsed_response['error']
+    puts "Whoops: #{res.parsed_response['error']['message']}".red
+    exit 1
+  end
   res.parsed_response['data']
 rescue HTTParty::ResponseError
   puts 'Instagram not reachable right now'.yellow
@@ -92,11 +104,11 @@ end
 
 def nice_title(image, short_code)
   title =
-    if image['caption']['text']
-      if image['caption']['text'].split.size > 8
-        "#{image['caption']['text'].split[0...8].join(' ')}…"
+    if image['caption'] && !image['caption'].empty?
+      if image['caption'].split.size > 8
+        "#{image['caption'].split[0...8].join(' ')}…"
       else
-        image['caption']['text']
+        image['caption']
       end
     else
       "Instagram - #{short_code}"
@@ -108,20 +120,20 @@ end
 # This grabs the URL from the new graphql results using a URL hack
 # Takes the shortcode URL as an argument
 def get_full_img_url(link)
-  p link
   res = HTTParty.get("#{link}?__a=1")
-  p res
   res.parsed_response['graphql']['shortcode_media']['display_url']
 end
 
 def image_vars(image)
-  short_code = File.basename(image['link'])
-  pub_date = DateTime.strptime(image['created_time'].to_s, '%s')
+  short_code = File.basename(image['permalink'])
+  pub_date = DateTime.parse(image['timestamp'])
+  tags = image['caption'].scan(/\B#(\w+)/).flatten
   vars = {
+    tags: tags,
     short_code: short_code,
     pub_date: pub_date,
-    dest_repo: repo(image['tags']),
-    img_url: get_full_img_url(image['link']),
+    dest_repo: repo(tags),
+    img_url: image['media_url'],
     title: nice_title(image, short_code),
     img_filename: "img/#{short_code}.jpg",
     post_filename: "_posts/#{pub_date.strftime('%F')}-#{short_code}.md"
@@ -130,7 +142,7 @@ def image_vars(image)
   vars.values
 end
 
-# New image in the last hour?
+# New image in the last two hours?
 def new_image?(pub_date)
   return false if pub_date < DateTime.now - (2 / 24.0)
 
@@ -155,6 +167,7 @@ if $PROGRAM_NAME == __FILE__
     tokens?
 
     instagram_images.each do |image|
+      tags,
       short_code,
       pub_date,
       dest_repo,
@@ -178,6 +191,7 @@ if $PROGRAM_NAME == __FILE__
 
       # Create the post
       rendered = render_template(
+        tags: tags,
         pub_date: pub_date,
         title: title,
         short_code: short_code,

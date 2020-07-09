@@ -57,24 +57,24 @@ class TestRelease < Minitest::Test
   end
 
   def test_instagram_images
-    stub_request(:get, /api.instagram.com/)
+    stub_request(:get, /graph.instagram.com/)
       .to_return(
         status: 200, headers: { 'Content-Type' => 'application/json' },
         body: JSON.generate(
           data: [{
-            images: {
-              standard_resolution: { url: 'https://scontent.cdninstagram.com/pretend_url.jpg' }
-            },
-            created_time: '1504218288',
-            caption: { text: 'Image text is here' }
+            caption: 'Image text is here',
+            media_url: 'https://scontent.cdninstagram.com/pretend_url.jpg',
+            timestamp: '2020-03-30T13:02:48+0000',
+            permalink: 'https://www.instagram.com/p/B-W9b35JzZC/',
           }]
         )
       )
     res = instagram_images
     assert_equal res.length, 1
-    assert_equal res[0]['images']['standard_resolution']['url'], 'https://scontent.cdninstagram.com/pretend_url.jpg'
-    assert_equal res[0]['created_time'], '1504218288'
-    assert_equal res[0]['caption']['text'], 'Image text is here'
+    assert_equal res[0]['media_url'], 'https://scontent.cdninstagram.com/pretend_url.jpg'
+    assert_equal res[0]['timestamp'], '2020-03-30T13:02:48+0000'
+    assert_equal res[0]['caption'], 'Image text is here'
+    assert_equal res[0]['permalink'], 'https://www.instagram.com/p/B-W9b35JzZC/'
   end
 
   def test_add_files_to_repox
@@ -105,14 +105,12 @@ class TestRelease < Minitest::Test
 
   def test_render_template
     locals = {
-      pub_date: DateTime.strptime('1504218288', '%s'),
+      tags: %w[tag1 tag2 run],
+      pub_date: DateTime.parse('2017-08-31T22:24:48+00:00'),
       title: 'This is the title',
       image: {
-        'caption' => {
-          'text' => 'Image text is here #anotag #tag1 #tag2'
-        },
-        'link' => 'https://www.instagram.com/p/BYeY7yClLbk/',
-        'tags' => %w[tag1 tag2 run]
+        'caption' => 'Image text is here #anotag #tag1 #tag2',
+        'permalink' => 'https://www.instagram.com/p/BYeY7yClLbk/',
       },
       short_code: 'FOOOBAAR',
       dest_repo: 'lildude/lildude.github.io'
@@ -132,53 +130,32 @@ class TestRelease < Minitest::Test
   end
 
   def test_nice_title
-    image = { 'caption' => { 'text': '' } }
+    image = { 'caption' => '' }
     assert_equal 'Instagram - FOOOBAAR', nice_title(image, 'FOOOBAAR')
-    image['caption']['text'] = 'Image text is here'
+    image['caption'] = 'Image text is here'
     assert_equal 'Image text is here', nice_title(image, 'FOOOBAAR')
-    image['caption']['text'] = 'Image text is here and is very very very very long'
+    image['caption'] = 'Image text is here and is very very very very long'
     assert_equal 'Image text is here and is very very…', nice_title(image, 'FOOOBAAR')
   end
 
   def test_image_vars
-    # Only stub the info we need
-    body = {
-      "graphql": {
-        "shortcode_media": {
-          "display_url": 'https://scontent.cdninstagram.com/pretend_url.jpg'
-        }
-      }
-    }.to_json
-
-    stub_request(:get, 'https://www.instagram.com/p/BYeY7yClLbk/?__a=1')
-      .with(
-        headers: {
-          'Accept' => '*/*',
-          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-          'User-Agent' => 'Ruby'
-        }
-      )
-      .to_return(status: 200, body: body, headers: { 'Content-Type' => 'application/json' })
-
-    image = { 'link' => 'https://www.instagram.com/p/BYeY7yClLbk/',
-              'caption' => { 'text' => 'Image text is here' },
-              'created_time' => '1504218288',
+    image = { 'permalink' => 'https://www.instagram.com/p/BYeY7yClLbk/',
+              'caption' => 'Image text is here #tag1 #tag2',
+              'timestamp' => '2017-08-31T22:24:48+00:00',
               'tags' => %w[tag1 tag2],
-              'images' => {
-                'standard_resolution' => {
-                  'url' => 'https://scontent.cdninstagram.com/pretend_url.jpg'
-                }
-              } }
+              'media_url' => 'https://scontent.cdninstagram.com/pretend_url.jpg'
+              }
 
     res = image_vars(image)
     assert_kind_of Array, res
     # Order is important
     assert_equal [
+      ["tag1", "tag2"],
       'BYeY7yClLbk',
-      DateTime.strptime('1504218288', '%s'),
+      DateTime.parse('2017-08-31T22:24:48+00:00'),
       'lildude/colinseymour.co.uk',
       'https://scontent.cdninstagram.com/pretend_url.jpg',
-      'Image text is here',
+      'Image text is here #tag1 #tag2',
       'img/BYeY7yClLbk.jpg',
       '_posts/2017-08-31-BYeY7yClLbk.md'
     ], res
