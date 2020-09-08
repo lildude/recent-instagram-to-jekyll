@@ -2,13 +2,14 @@
 # frozen_string_literal: true
 
 # Quick hacky script to get all my instagram images and create posts from them.
-require 'colorize'
-require 'date'
-require 'erb'
-require 'httparty'
-require 'json'
-require 'octokit'
-require 'tempfile'
+require "colorize"
+require "date"
+require "erb"
+require "httparty"
+require "json"
+require "octokit"
+require "rbnacl"
+require "tempfile"
 
 TEMPLATE = <<~TEMPLATE
   ---
@@ -34,21 +35,21 @@ TEMPLATE = <<~TEMPLATE
 TEMPLATE
 
 def client
-  @client ||= Octokit::Client.new(access_token: ENV['GITHUB_TOKEN'])
+  @client ||= Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
 end
 
 def tokens?
-  raise 'Missing auth env vars for tokens' unless ENV['INSTAGRAM_TOKEN'] && ENV['GITHUB_TOKEN']
+  raise "Missing auth env vars for tokens" unless ENV["INSTAGRAM_TOKEN"] && ENV["GITHUB_TOKEN"]
 
   true
 end
 
 def repo(tags = [])
-  return 'lildude/gonefora.run' if tags.include?('run')
-  return 'lildude/lildude.co.uk' if tags.include?('tech')
-  return 'lildude/lildude.github.io' if ENV['RACK_ENV'] == 'development'
+  return "lildude/gonefora.run" if tags.include?("run")
+  return "lildude/lildude.co.uk" if tags.include?("tech")
+  return "lildude/lildude.github.io" if ENV["RACK_ENV"] == "development"
 
-  'lildude/colinseymour.co.uk'
+  "lildude/colinseymour.co.uk"
 end
 
 def repo_has_post?(repo, short_code)
@@ -99,48 +100,47 @@ def renew_insta_token(repo)
 end
 
 def instagram_images
-  res = HTTParty.get("https://graph.instagram.com/me/media?fields=caption,media_type,media_url,timestamp,permalink&access_token=#{ENV['INSTAGRAM_TOKEN']}")
-  if res.parsed_response['error']
-    puts "Whoops: #{res.parsed_response['error']['message']}".red
+  res = HTTParty.get("https://graph.instagram.com/me/media?fields=caption,media_type,media_url,timestamp,permalink&access_token=#{ENV["INSTAGRAM_TOKEN"]}")
+  if res.parsed_response["error"]
+    puts "Whoops: #{res.parsed_response["error"]["message"]}".red
     exit 1
   end
-  res.parsed_response['data']
+  res.parsed_response["data"]
 rescue HTTParty::ResponseError
-  puts 'Instagram not reachable right now'.yellow
+  puts "Instagram not reachable right now".yellow
   exit
 end
 
 def add_files_to_repo(repo, files = {})
-  sha_latest_commit = client.ref(repo, 'heads/master').object.sha
+  sha_latest_commit = client.ref(repo, "heads/master").object.sha
   sha_base_tree = client.commit(repo, sha_latest_commit).commit.tree.sha
 
   new_tree = files.map do |path, content|
     Hash(
       path: path,
-      mode: '100644',
-      type: 'blob',
-      sha: client.create_blob(repo, content, 'base64')
+      mode: "100644",
+      type: "blob",
+      sha: client.create_blob(repo, content, "base64"),
     )
   end
 
   sha_new_tree = client.create_tree(repo, new_tree, base_tree: sha_base_tree).sha
-  sha_new_commit = client.create_commit(repo, 'New Instagram photo', sha_new_tree, sha_latest_commit).sha
-  client.update_ref(repo, 'heads/master', sha_new_commit)
+  sha_new_commit = client.create_commit(repo, "New Instagram photo", sha_new_tree, sha_latest_commit).sha
+  client.update_ref(repo, "heads/master", sha_new_commit)
 end
 
 def render_template(locals = {})
   render_binding = binding
   locals.each { |k, v| render_binding.local_variable_set(k, v) }
-  ERB.new(TEMPLATE, trim_mode: '-').result(render_binding)
+  ERB.new(TEMPLATE, trim_mode: "-").result(render_binding)
 end
 
 def nice_title(image, short_code)
-  title =
-    if image['caption'] && !image['caption'].empty?
-      if image['caption'].split.size > 8
-        "#{image['caption'].split[0...8].join(' ')}…"
+  title = if image["caption"] && !image["caption"].empty?
+      if image["caption"].split.size > 8
+        "#{image["caption"].split[0...8].join(" ")}…"
       else
-        image['caption']
+        image["caption"]
       end
     else
       "Instagram - #{short_code}"
@@ -153,22 +153,22 @@ end
 # Takes the shortcode URL as an argument
 def get_full_img_url(link)
   res = HTTParty.get("#{link}?__a=1")
-  res.parsed_response['graphql']['shortcode_media']['display_url']
+  res.parsed_response["graphql"]["shortcode_media"]["display_url"]
 end
 
 def image_vars(image)
-  short_code = File.basename(image['permalink'])
-  pub_date = DateTime.parse(image['timestamp'])
-  tags = image['caption'].scan(/\B#(\w+)/).flatten
+  short_code = File.basename(image["permalink"])
+  pub_date = DateTime.parse(image["timestamp"])
+  tags = image["caption"].scan(/\B#(\w+)/).flatten
   vars = {
     tags: tags,
     short_code: short_code,
     pub_date: pub_date,
     dest_repo: repo(tags),
-    img_url: image['media_url'],
+    img_url: image["media_url"],
     title: nice_title(image, short_code),
     img_filename: "img/#{short_code}.jpg",
-    post_filename: "_posts/#{pub_date.strftime('%F')}-#{short_code}.md"
+    post_filename: "_posts/#{pub_date.strftime("%F")}-#{short_code}.md",
   }
 
   vars.values
@@ -182,8 +182,8 @@ def new_image?(pub_date)
 end
 
 def encode_image(url)
-  tmpfile = Tempfile.new('photo')
-  File.open(tmpfile, 'wb') do |f|
+  tmpfile = Tempfile.new("photo")
+  File.open(tmpfile, "wb") do |f|
     resp = HTTParty.get(url, stream_body: true, follow_redirects: true)
     raise unless resp.success?
 
@@ -210,14 +210,14 @@ if $PROGRAM_NAME == __FILE__
 
       # Exit early if the image was posted over an hour ago
       unless new_image?(pub_date)
-        puts 'Nothing new'.blue
+        puts "Nothing new".blue
         exit
       end
 
       print "#{short_code} => ".yellow + "#{dest_repo} => ".magenta
       # Skip if repo already has the photo - this is just a precaution
       if repo_has_post? dest_repo, short_code
-        puts 'Skipped'.blue
+        puts "Skipped".blue
         next
       end
 
@@ -228,14 +228,14 @@ if $PROGRAM_NAME == __FILE__
         title: title,
         short_code: short_code,
         image: image,
-        dest_repo: dest_repo
+        dest_repo: dest_repo,
       )
       post_content = Base64.encode64(rendered)
 
       add_files_to_repo dest_repo,
                         "#{post_filename}": post_content,
                         "#{img_filename}": encode_image(img_url)
-      puts 'DONE'.green
+      puts "DONE".green
     end
   rescue RuntimeError => e
     warn "Error: #{e}".red
