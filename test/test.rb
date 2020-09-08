@@ -54,6 +54,39 @@ class TestRelease < Minitest::Test
     refute repo_has_post?('lildude/lildude.github.io', 'FOOOBAAR')
   end
 
+  # lazy mocking
+  def encode_tokens(_key, _token, _expiry_date)
+    { 'INSTAGRAM_TOKEN' => '654321', 'INSTAGRAM_TOKEN_EXPIRY' => '111111' }
+  end
+
+  def test_renew_insta_token
+    # Unexpired token
+    ENV['INSTAGRAM_TOKEN_EXPIRY'] = (Time.now + 360).to_i.to_s
+    assert_equal 'Instragram token still valid.'.green, renew_insta_token('lildude/lildude.github.io')
+
+    # Expired token
+    ENV['INSTAGRAM_TOKEN_EXPIRY'] = (Time.now - 360).to_i.to_s
+    stub_request(:get, /graph.instagram.com/)
+      .to_return(
+        status: 200, headers: { 'Content-Type' => 'application/json' },
+        body: JSON.generate({
+                              access_token: '123456',
+                              expires_in: '999999'
+                            })
+      )
+    stub_request(:get, /api.github.com/)
+      .to_return(
+        body: JSON.generate({
+                              key: 'c2VjcmV0LWtleQ==', # Base64.strict_encode64("secret-key")
+                              key_id: '123-456'
+                            })
+      )
+
+    stub_request(:put, /api.github.com/)
+      .to_return(status: 204, headers: { 'Content-Type' => 'application/json', 'status' => '204' }, body: nil)
+    assert renew_insta_token('lildude/lildude.github.io')
+  end
+
   def test_instagram_images
     stub_request(:get, /graph.instagram.com/)
       .to_return(
