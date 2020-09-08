@@ -59,11 +59,43 @@ def repo_has_post?(repo, short_code)
 end
 
 # Instagram long-lived tokens are only valid for 60 days but are easily renewed.
-# The hardest part is remembering to update the settings.
-def renew_insta_token
-  res = HTTParty.get("https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=#{ENV['INSTAGRAM_TOKEN']}")
-  puts "Problem refreshing token: #{res.parsed_response['error']['message']}".red if res.parsed_response['error']
-  res.parsed_response['access_token']
+# This renews the token ~7 days before expiring and updates the repo secrets with the
+# new token and expiry date (now + 53 days)
+def renew_insta_token(repo)
+  expiry_date = ENV["INSTAGRAM_TOKEN_EXPIRY"]
+  now = Time.now
+  if expiry_date < now
+    res = HTTParty.get("https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=#{ENV["INSTAGRAM_TOKEN"]}")
+    return puts "Problem refreshing token: #{res.parsed_response["error"]["message"]}".red if res.parsed_response["error"]
+
+    new_instagram_token = res.parsed_response["access_token"]
+    new_expiry_date = now + res.parsed_response["expires_in"] - 604800 # new date = now + 'expire_in' - 7 days
+
+    # Octokit doesn't have support for Action API yet, so we need to do this manually - https://github.com/octokit/octokit.rb/issues/1216
+    res = HTTParty.get("https://api.github.com/repos/#{repo}/actions/secrets/public-key", headers: { 'Authorization': "token #{ENV["GITHUB_TOKEN"]}" })
+    key = Base64.decode64(res.parsed_response["key"])
+    key_id = res.parsed_response["key_id"]
+    public_key = RbNaCl::PublicKey.new(key)
+    box = RbNaCl::Boxes::Sealed.from_public_key(public_key)
+
+    tokens = {}
+    tokens["INSTAGRAM_TOKEN"] = Base64.strict_encode64(box.encrypt(new_instagram_token))
+    tokens["INSTAGRAM_TOKEN_EXPIRY"] = Base64.strict_encode64(box.encrypt(new_expiry_date.to_s))
+
+    tokens.each do |secret, value|
+      res = HTTParty.put(
+        "https://api.github.com/repos/#{repo}/actions/secrets/#{secret}",
+        body: { encrypted_value: value, key_id: key_id }.to_json,
+        headers: { 'Authorization': "token #{ENV["GITHUB_TOKEN"]}" },
+      )
+
+      if res.response.header["status"] !~ /^20[14]/
+        puts "Problem updating GitHub secret #{secret}: #{res.response.header["status"]}".red
+      else
+        puts "Updated GitHub secret #{secret}".blue
+      end
+    end
+  end
 end
 
 def instagram_images
