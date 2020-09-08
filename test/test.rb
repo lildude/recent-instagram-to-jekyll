@@ -18,8 +18,6 @@ require_relative '../create_post'
 
 ENV['RACK_ENV'] ||= 'test'
 
-# rubocop:disable Metrics/ClassLength
-# rubocop:disable Metrics/MethodLength
 class TestRelease < Minitest::Test
   def test_tokens
     exception = assert_raises(RuntimeError) { tokens? }
@@ -173,5 +171,3 @@ class TestRelease < Minitest::Test
     assert_equal expected, encode_image('https://scontent.cdninstagram.com/pretend_url.jpg')
   end
 end
-# rubocop:enable Metrics/ClassLength
-# rubocop:enable Metrics/MethodLength
