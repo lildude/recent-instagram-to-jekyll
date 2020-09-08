@@ -78,28 +78,27 @@ def renew_insta_token(repo)
 
   # Octokit doesn't have support for Action API yet, so we need to do this manually - https://github.com/octokit/octokit.rb/issues/1216
   res = HTTParty.get("https://api.github.com/repos/#{repo}/actions/secrets/public-key", headers: { 'Authorization': "token #{ENV['GITHUB_TOKEN']}" })
-  key = Base64.decode64(res.parsed_response['key'])
   key_id = res.parsed_response['key_id']
-  public_key = RbNaCl::PublicKey.new(key)
-  box = RbNaCl::Boxes::Sealed.from_public_key(public_key)
 
-  tokens = {}
-  tokens['INSTAGRAM_TOKEN'] = Base64.strict_encode64(box.encrypt(new_instagram_token))
-  tokens['INSTAGRAM_TOKEN_EXPIRY'] = Base64.strict_encode64(box.encrypt(new_expiry_date))
-
-  tokens.each do |secret, value|
+  encoded_tokens = encode_tokens(Base64.decode64(res.parsed_response['key']), new_instagram_token, new_expiry_date)
+  encoded_tokens.each do |secret, value|
     res = HTTParty.put(
       "https://api.github.com/repos/#{repo}/actions/secrets/#{secret}",
       body: { encrypted_value: value, key_id: key_id }.to_json,
       headers: { 'Authorization': "token #{ENV['GITHUB_TOKEN']}" }
     )
-
-    if res.response.header['status'] !~ /^20[14]/
-      puts "Problem updating GitHub secret #{secret}: #{res.response.header['status']}".red
-    else
-      puts "Updated GitHub secret #{secret}".blue
-    end
   end
+end
+
+def encode_tokens(key, token, expiry_date)
+  public_key = RbNaCl::PublicKey.new(key)
+  box = RbNaCl::Boxes::Sealed.from_public_key(public_key)
+
+  tokens = {}
+  tokens['INSTAGRAM_TOKEN'] = Base64.strict_encode64(box.encrypt(token))
+  tokens['INSTAGRAM_TOKEN_EXPIRY'] = Base64.strict_encode64(box.encrypt(expiry_date))
+
+  tokens
 end
 
 def instagram_images
