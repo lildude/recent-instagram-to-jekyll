@@ -139,10 +139,11 @@ end
 
 def nice_title(image, short_code)
   title = if image['caption'] && !image['caption'].empty?
-            if image['caption'].split.size > 8
-              "#{image['caption'].split[0...8].join(' ')}…"
+            stripped = strip_hashtags(image['caption'])
+            if stripped.split.size > 8
+              "#{stripped.split[0...8].join(' ')}…"
             else
-              image['caption']
+              stripped
             end
           else
             "Instagram - #{short_code}"
@@ -190,6 +191,10 @@ end
 
 def parse_hashtags(text)
   text.scan(/\B#(\w+)/).flatten
+end
+
+def strip_hashtags(text)
+  text.gsub(/\B#(\w+)/, '').squeeze(' ').strip
 end
 
 def encode_image(url)

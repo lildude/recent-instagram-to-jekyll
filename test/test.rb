@@ -185,9 +185,9 @@ class TestRelease < Minitest::Test
       DateTime.parse('2017-08-31T22:24:48+00:00'),
       'lildude/colinseymour.co.uk',
       'https://scontent.cdninstagram.com/pretend_url.jpg',
-      'Image text is here #tag1 #tag2',
+      'Image text is here',
       'img/BYeY7yClLbk.jpg',
-      '_posts/2017-08-31-image-text-is-here-tag1-tag2.md'
+      '_posts/2017-08-31-image-text-is-here.md'
     ], res
   end
 
@@ -209,6 +209,10 @@ class TestRelease < Minitest::Test
 
   def test_parse_hashtags
     assert_equal %w[tag1 tag2 tag3], parse_hashtags('This #tag1 this has #tag2 and ano #tag3')
+  end
+
+  def test_strip_hashtags
+    assert_equal 'The EXTRA tags are Gone 👋', strip_hashtags('#tag1 The EXTRA #tag1 #tag2 tags are Gone 👋 #tag3')
   end
 
   def test_encode_image
