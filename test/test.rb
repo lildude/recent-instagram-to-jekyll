@@ -196,6 +196,16 @@ class TestRelease < Minitest::Test
     refute new_image?(DateTime.now - (2.5 / 24.0))
   end
 
+  def test_slugify
+    assert_equal 'this-is-text', slugify('This IS text')
+    assert_equal 'this-is-text', slugify('this-is-text')
+    assert_equal 'this-is-1234-no-emoji-or-punc', slugify('this is 🍎 1234 no Emoji ! or punc')
+    assert_equal 'this-ends-in-emoji', slugify('tHis ends In emoji 🤡')
+    assert_equal 'all-extra-spaces-removed', slugify('all  extra    spaces-removed')
+    assert_equal 'no-dup-hyphens', slugify('no -🥵- dup hyphens')
+    assert_equal 'no-triple-dots', slugify('no… triple … dots…')
+    assert_equal 'no-hash-tags', slugify('no #hash tags')
+  end
   def test_encode_image
     stub_request(:get, 'https://scontent.cdninstagram.com/pretend_url.jpg')
       .to_return(status: 200, body: File.open("#{File.dirname(__FILE__)}/fixtures/test.jpg"))

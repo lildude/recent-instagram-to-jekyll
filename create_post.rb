@@ -183,6 +183,9 @@ def new_image?(pub_date)
   true
 end
 
+def slugify(text)
+  text.downcase.gsub('/[\s.\/_]/', ' ').gsub(/[^\w\s-]/, '').tr(' ', '-').squeeze(' -').chomp('-')
+end
 def encode_image(url)
   tmpfile = Tempfile.new('photo')
   File.open(tmpfile, 'wb') do |f|
