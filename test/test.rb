@@ -187,7 +187,7 @@ class TestRelease < Minitest::Test
       'https://scontent.cdninstagram.com/pretend_url.jpg',
       'Image text is here #tag1 #tag2',
       'img/BYeY7yClLbk.jpg',
-      '_posts/2017-08-31-BYeY7yClLbk.md'
+      '_posts/2017-08-31-image-text-is-here-tag1-tag2.md'
     ], res
   end
 

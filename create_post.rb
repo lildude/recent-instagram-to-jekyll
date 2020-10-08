@@ -162,15 +162,16 @@ def image_vars(image)
   short_code = File.basename(image['permalink'])
   pub_date = DateTime.parse(image['timestamp'])
   tags = image['caption'].scan(/\B#(\w+)/).flatten
+  title = nice_title(image, short_code)
   vars = {
     tags: tags,
     short_code: short_code,
     pub_date: pub_date,
     dest_repo: repo(tags),
     img_url: image['media_url'],
-    title: nice_title(image, short_code),
+    title: title,
     img_filename: "img/#{short_code}.jpg",
-    post_filename: "_posts/#{pub_date.strftime('%F')}-#{short_code}.md"
+    post_filename: "_posts/#{pub_date.strftime('%F')}-#{slugify(title)}.md"
   }
 
   vars.values
