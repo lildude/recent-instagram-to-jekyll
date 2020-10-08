@@ -206,6 +206,11 @@ class TestRelease < Minitest::Test
     assert_equal 'no-triple-dots', slugify('no… triple … dots…')
     assert_equal 'no-hash-tags', slugify('no #hash tags')
   end
+
+  def test_parse_hashtags
+    assert_equal %w[tag1 tag2 tag3], parse_hashtags('This #tag1 this has #tag2 and ano #tag3')
+  end
+
   def test_encode_image
     stub_request(:get, 'https://scontent.cdninstagram.com/pretend_url.jpg')
       .to_return(status: 200, body: File.open("#{File.dirname(__FILE__)}/fixtures/test.jpg"))

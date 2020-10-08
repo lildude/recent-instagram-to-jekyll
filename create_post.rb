@@ -187,6 +187,11 @@ end
 def slugify(text)
   text.downcase.gsub('/[\s.\/_]/', ' ').gsub(/[^\w\s-]/, '').tr(' ', '-').squeeze(' -').chomp('-')
 end
+
+def parse_hashtags(text)
+  text.scan(/\s+#(\w+)/).flatten
+end
+
 def encode_image(url)
   tmpfile = Tempfile.new('photo')
   File.open(tmpfile, 'wb') do |f|
