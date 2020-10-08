@@ -161,7 +161,7 @@ end
 def image_vars(image)
   short_code = File.basename(image['permalink'])
   pub_date = DateTime.parse(image['timestamp'])
-  tags = image['caption'].scan(/\B#(\w+)/).flatten
+  tags = parse_hashtags(image['caption'])
   title = nice_title(image, short_code)
   vars = {
     tags: tags,
@@ -189,7 +189,7 @@ def slugify(text)
 end
 
 def parse_hashtags(text)
-  text.scan(/\s+#(\w+)/).flatten
+  text.scan(/\B#(\w+)/).flatten
 end
 
 def encode_image(url)
