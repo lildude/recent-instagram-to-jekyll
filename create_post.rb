@@ -138,17 +138,16 @@ def render_template(locals = {})
 end
 
 def nice_title(image, short_code)
-  title = if image['caption'] && !image['caption'].empty?
-            stripped = strip_hashtags(image['caption'])
-            if stripped.split.size > 8
-              "#{stripped.split[0...8].join(' ')}…"
-            else
-              stripped
-            end
-          else
-            "Instagram - #{short_code}"
-          end
-  title
+  if image['caption'] && !image['caption'].empty?
+    stripped = strip_hashtags(image['caption'])
+    if stripped.split.size > 8
+      "#{stripped.split[0...8].join(' ')}…"
+    else
+      stripped
+    end
+  else
+    "Instagram - #{short_code}"
+  end
 end
 
 # The full size URL has been known to change without warning. See https://stackoverflow.com/questions/31302811/1080x1080-photos-via-instagram-api
